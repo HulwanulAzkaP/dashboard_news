@@ -51,8 +51,8 @@ Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan A
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/username/global-news-intelligence.git
-cd global-news-intelligence
+git clone https://github.com/HulwanulAzkaP/dashboard_news.git
+cd dashboard_news
 ```
 
 ### 2. Install Dependencies
@@ -132,7 +132,7 @@ Buka dashboard di browser: `http://localhost:5000` atau dari HP lain: `http://[I
 ## 📁 Struktur Project
 
 ```
-global-news-intelligence/
+dashboard_news/
 ├── .env                          # Konfigurasi API (jangan di-upload ke GitHub)
 ├── requirements.txt
 ├── main.py                       # Entry point
