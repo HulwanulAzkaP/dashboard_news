@@ -1,5 +1,3 @@
----
-
 ```markdown
 # 🌐 Global News Intelligence Dashboard
 
