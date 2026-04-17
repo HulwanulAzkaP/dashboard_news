@@ -1,4 +1,4 @@
-```markdown
+
 # 🌐 Global News Intelligence Dashboard
 
 Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan AI otomatis. Dibangun untuk self-hosted deployment di Orange Pi, laptop, atau server lokal.
@@ -7,7 +7,6 @@ Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan A
 ![Flask](https://img.shields.io/badge/Flask-3.0-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
----
 
 ## ✨ Fitur Utama
 
@@ -23,10 +22,9 @@ Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan A
 - **🎨 Modern Dashboard**: Single-page, glassmorphism, responsive, dark mode
 - **🏠 Self-Hosted**: 100% local, data tidak keluar ke cloud pihak ketiga (kecuali API call ke provider AI)
 
----
+
 
 ## 🏗️ Arsitektur
-
 ```
 ┌─────────────┐      ┌──────────────┐      ┌─────────────────────┐
 │  Telegram   │◄────►│  Flask API   │◄────►│  Google News RSS    │
@@ -36,7 +34,7 @@ Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan A
                             │
                    ┌────────▼────────┐
                    │  AI Summarizer  │
-                   │  (Triple Fallback)│
+                   │(Triple Fallback)│
                    └────────┬────────┘
                             │
         ┌───────────────────┼───────────────────┐
@@ -47,7 +45,6 @@ Dashboard berita global interaktif dengan bot Telegram on-demand dan ringkasan A
  └─────────────┘    └──────────────┘    └──────────────┘
 ```
 
----
 
 ## 📦 Instalasi
 
@@ -93,7 +90,6 @@ FETCH_MAX_RESULTS=10
 SUMMARY_MAX_LENGTH=300
 ```
 
----
 
 ## 🚀 Cara Menjalankan
 
@@ -113,7 +109,6 @@ Tekan CTRL+C untuk berhenti.
 
 Buka dashboard di browser: `http://localhost:5000` atau dari HP lain: `http://[IP_LAN]:5000`
 
----
 
 ## 🤖 Perintah Telegram Bot
 
@@ -133,7 +128,6 @@ Buka dashboard di browser: `http://localhost:5000` atau dari HP lain: `http://[I
 /summary tech
 ```
 
----
 
 ## 📁 Struktur Project
 
@@ -168,7 +162,6 @@ global-news-intelligence/
     └── ...
 ```
 
----
 
 ## 🎨 Dashboard
 
@@ -183,7 +176,6 @@ global-news-intelligence/
 3. Setelah AI selesai, ringkasan **otomatis muncul** tanpa reload
 4. Klik tombol `↻` untuk **force refresh** dari Google News
 
----
 
 ## ⚙️ Konfigurasi AI Provider
 
@@ -203,7 +195,6 @@ global-news-intelligence/
 - Aktifkan **REST API** di port `1234`
 - Load model sebelum request masuk
 
----
 
 ## 🛠️ Troubleshooting
 
@@ -224,37 +215,10 @@ global-news-intelligence/
 - Sistem otomatis mendeteksi **IPv4** yang valid untuk jaringan lokal
 - Kalau tetap bermasalah, akses manual via `http://[IP_KAMU]:5000`
 
----
 
 ## 📜 Lisensi
 
 MIT License. Bebas digunakan untuk personal maupun komersial.
 
----
 
 Dibuat dengan ❤️ oleh RIKKUBOT System
-```
-
----
-
-Tinggal copy-paste ke file `README.md` di root project. Jangan lupa tambahkan `.gitignore`:
-
-```gitignore
-.env
-__pycache__/
-*.pyc
-logs/
-*.log
-```
-
-Push ke GitHub:
-```bash
-git init
-git add .
-git commit -m "init: global news intelligence dashboard"
-git branch -M main
-git remote add origin https://github.com/username/repo.git
-git push -u origin main
-```
-
-Mau aku tambahkan juga **GitHub Actions CI/CD** atau **Docker support** biar lebih pro? 🐳
