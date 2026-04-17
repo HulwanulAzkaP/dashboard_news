@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global News Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0e1a;
+            --card: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --financial: #f59e0b;
+            --tech: #10b981;
+            --politics: #ef4444;
+            --un: #8b5cf6;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow {
+            position: fixed;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-1 { top: -100px; left: -100px; background: var(--accent); }
+        .glow-2 { bottom: -100px; right: -100px; background: var(--tech); }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--tech);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--tech);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .cache-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--tech);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: none;
+        }
+        .cache-badge.show { display: block; }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: var(--text-muted);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .tab.active { 
+            background: rgba(59, 130, 246, 0.1); 
+            border-color: var(--accent); 
+            color: var(--text);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .tab[data-cat="financial"].active { border-color: var(--financial); color: var(--financial); background: rgba(245, 158, 11, 0.1); }
+        .tab[data-cat="tech"].active { border-color: var(--tech); color: var(--tech); background: rgba(16, 185, 129, 0.1); }
+        .tab[data-cat="politics"].active { border-color: var(--politics); color: var(--politics); background: rgba(239, 68, 68, 0.1); }
+        .tab[data-cat="un"].active { border-color: var(--un); color: var(--un); background: rgba(139, 92, 246, 0.1); }
+
+        .content { display: none; }
+        .content.active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-summary {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            min-height: 80px;
+        }
+
+        .ai-summary::before {
+            content: "🧠 AI Summary";
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .ai-summary.loading { opacity: 0.6; }
+
+        .summary-spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 3px; height: 100%;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before { opacity: 1; }
+
+        .card-category {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+            color: #fff;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: gap 0.3s;
+        }
+
+        .card-link:hover { gap: 0.75rem; }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--accent-glow);
+            transition: all 0.3s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover { transform: scale(1.1) rotate(180deg); }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state button {
+            margin-top: 1rem;
+            padding: 0.75rem 2rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.4rem; }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1>Global News Intelligence</h1>
+                <p style="color: var(--text-muted); margin-top: 0.25rem;">Dashboard by RIKKUBOT System</p>
+            </div>
+            <div style="display:flex;gap:1rem;align-items:center;">
+                <span class="cache-badge" id="cacheBadge">📦 Cache</span>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    <span>Live Update</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Cari berita global... (Enter untuk search)" onkeypress="handleSearch(event)">
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-cat="financial" onclick="switchTab('financial')">💰 Financial</div>
+            <div class="tab" data-cat="tech" onclick="switchTab('tech')">💻 Technology</div>
+            <div class="tab" data-cat="politics" onclick="switchTab('politics')">🌍 Global Politics</div>
+            <div class="tab" data-cat="un" onclick="switchTab('un')">🏥 UN & Health</div>
+        </div>
+
+        <div id="contents">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="forceRefresh()" title="Refresh dari Google News">↻</button>
+
+    <script>
+        let currentData = {};
+        let activeTab = 'financial';
+        let summaryLoading = {};
+        let isFromCache = false;
+
+        const catColors = {
+            financial: '#f59e0b',
+            tech: '#10b981',
+            politics: '#ef4444',
+            un: '#8b5cf6'
+        };
+
+        function switchTab(cat) {
+            activeTab = cat;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-cat="${cat}"]`).classList.add('active');
+            renderCategory(cat);
+        }
+
+        function renderCategory(cat) {
+            const container = document.getElementById('contents');
+            const data = currentData[cat];
+            
+            if (!data || !data.articles || data.articles.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 Belum ada data</h3>
+                        <p>Klik tombol di bawah untuk mengambil berita terbaru</p>
+                        <button onclick="forceRefresh()">🔄 Ambil Berita</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const color = catColors[cat];
+            const isSummaryLoading = summaryLoading[cat];
+            const summaryText = data.ai_summary || (isSummaryLoading 
+                ? '<span class="summary-spinner"></span>Generating AI summary...' 
+                : 'Klik tombol refresh untuk generate ringkasan AI.');
+            
+            let html = `
+                <div class="content active">
+                    <div class="ai-summary ${isSummaryLoading ? 'loading' : ''}" style="border-left: 3px solid ${color}" id="summary-${cat}">
+                        ${summaryText}
+                    </div>
+                    <div class="grid">
+            `;
+
+            data.articles.forEach(art => {
+                html += `
+                    <div class="card">
+                        <div class="card-category" style="color: ${color}">${cat.toUpperCase()}</div>
+                        <div class="card-title">${escapeHtml(art.title)}</div>
+                        <div class="card-meta">
+                            <span>🏢 ${escapeHtml(art.source)}</span>
+                            <span>📅 ${formatDate(art.published)}</span>
+                        </div>
+                        <a href="${art.link}" target="_blank" class="card-link">
+                            Baca Selengkapnya →
+                        </a>
+                    </div>
+                `;
+            });
+
+            html += '</div></div>';
+            container.innerHTML = html;
+        }
+
+        // ==================== LOAD CACHE PERTAMA ====================
+        async function initLoad() {
+            document.getElementById('contents').innerHTML = '<div class="loading"><div class="spinner"></div>Checking cache...</div>';
+            
+            try {
+                // Coba ambil dari cache dulu
+                const res = await fetch('/api/news');
+                const result = await res.json();
+                
+                if (result.status === 'ok' && Object.keys(result.data).length > 0) {
+                    // ADA CACHE! Tampilkan langsung
+                    isFromCache = true;
+                    document.getElementById('cacheBadge').classList.add('show');
+                    
+                    // Convert format cache ke format yang sama dengan refresh
+                    for (const [cat, articles] of Object.entries(result.data)) {
+                        currentData[cat] = {
+                            articles: articles,
+                            ai_summary: null,
+                            loading: false
+                        };
+                    }
+                    
+                    renderCategory(activeTab);
+                    
+                    // Fetch summary di background (tidak blocking)
+                    Object.keys(currentData).forEach(cat => {
+                        fetchSummary(cat);
+                    });
+                    
+                } else {
+                    // Cache kosong, fetch baru
+                    console.log("Cache kosong, fetching fresh data...");
+                    await forceRefresh();
+                }
+                
+            } catch (e) {
+                console.error("Init error:", e);
+                document.getElementById('contents').innerHTML = 
+                    `<div class="loading" style="color: #ef4444">Error: ${e.message}</div>`;
+            }
+        }
+
+        // ==================== FORCE REFRESH ====================
+        async function forceRefresh() {
+            document.getElementById('cacheBadge').classList.remove('show');
+            document.getElementById('contents').innerHTML = '<div class="loading"><div class="spinner"></div>Fetching from Google News...</div>';
+            
+            try {
+                const res = await fetch('/api/refresh');
+                currentData = await res.json();
+                isFromCache = false;
+                
+                // Reset summary loading state
+                Object.keys(currentData).forEach(cat => {
+                    summaryLoading[cat] = true;
+                });
+                
+                renderCategory(activeTab);
+                
+                // Fetch summary parallel
+                Object.keys(currentData).forEach(cat => {
+                    fetchSummary(cat);
+                });
+                
+            } catch (e) {
+                document.getElementById('contents').innerHTML = 
+                    `<div class="loading" style="color: #ef4444">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function fetchSummary(cat) {
+            summaryLoading[cat] = true;
+            
+            try {
+                const res = await fetch(`/api/summary/${cat}`);
+                const data = await res.json();
+                
+                if (currentData[cat]) {
+                    currentData[cat].ai_summary = data.summary;
+                }
+                summaryLoading[cat] = false;
+                
+                // Update DOM hanya untuk tab aktif
+                if (activeTab === cat) {
+                    const summaryEl = document.getElementById(`summary-${cat}`);
+                    if (summaryEl) {
+                        summaryEl.innerHTML = data.summary;
+                        summaryEl.classList.remove('loading');
+                    }
+                }
+            } catch (e) {
+                console.error(`Summary error for ${cat}:`, e);
+                summaryLoading[cat] = false;
+            }
+        }
+
+        async function handleSearch(e) {
+            if (e.key !== 'Enter') return;
+            const query = e.target.value.trim();
+            if (!query) return;
+
+            document.getElementById('contents').innerHTML = '<div class="loading"><div class="spinner"></div>Mencari...</div>';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            try {
+                // Search news dulu
+                const res = await fetch(`/api/search/${encodeURIComponent(query)}`);
+                const data = await res.json();
+                
+                // Render hasil search DULU
+                let html = `
+                    <div class="content active">
+                        <div class="ai-summary loading" id="search-summary">
+                            <span class="summary-spinner"></span>Generating AI summary...
+                        </div>
+                        <div class="grid">
+                `;
+                
+                data.articles.forEach(art => {
+                    html += `
+                        <div class="card">
+                            <div class="card-title">${escapeHtml(art.title)}</div>
+                            <div class="card-meta">
+                                <span>🏢 ${escapeHtml(art.source)}</span>
+                            </div>
+                            <a href="${art.link}" target="_blank" class="card-link">Baca Selengkapnya →</a>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+                document.getElementById('contents').innerHTML = html;
+                
+                // Fetch summary async
+                try {
+                    const sumRes = await fetch(`/api/search-summary/${encodeURIComponent(query)}`);
+                    const sumData = await sumRes.json();
+                    const sumEl = document.getElementById('search-summary');
+                    if (sumEl) {
+                        sumEl.innerHTML = sumData.summary;
+                        sumEl.classList.remove('loading');
+                    }
+                } catch (sumErr) {
+                    console.error("Search summary error:", sumErr);
+                }
+                
+            } catch (e) {
+                alert('Gagal mencari: ' + e.message);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Recently';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+            } catch { return dateStr; }
+        }
+
+        // Init: pakai cache dulu!
+        initLoad();
+    </script>
+</body>
+</html>
